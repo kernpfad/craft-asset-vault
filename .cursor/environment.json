@@ -1,8 +1,0 @@
-{
-  "name": "Asset Vault",
-  "user": "ubuntu",
-  "build": {
-    "dockerfile": "Dockerfile"
-  },
-  "install": "composer install --no-interaction --no-progress"
-}
