@@ -1,0 +1,40 @@
+{% extends "_layouts/cp" %}
+
+{% set title = "Restore Preview"|t('asset-vault') %}
+{% set selectedSubnavItem = 'vault' %}
+{% set crumbs = [
+    { label: "Asset Vault"|t('asset-vault'), url: url('asset-vault') },
+] %}
+
+{% block content %}
+    <p>
+        <strong>{{ item.filename }}</strong>
+        {% if item.title %}<br><span class="light">{{ item.title }}</span>{% endif %}
+    </p>
+
+    {% if preview is null %}
+        <p class="error">
+            {{ "This file can’t be restored: its volume or original folder no longer exists."|t('asset-vault') }}
+        </p>
+        <a href="{{ url('asset-vault') }}" class="btn">{{ "Back"|t('asset-vault') }}</a>
+    {% else %}
+        <p>
+            {{ "Volume:"|t('asset-vault') }} <strong>{{ item.volumeHandle }}</strong><br>
+            {{ "Target path:"|t('asset-vault') }} <code>{{ preview.targetPath }}</code>
+        </p>
+
+        {% if preview.hasConflict %}
+            <p class="warning with-icon">
+                {{ "A file already exists at the original location. Restoring will save this one under a different name so nothing gets overwritten."|t('asset-vault') }}
+            </p>
+        {% endif %}
+
+        <form method="post" accept-charset="UTF-8">
+            {{ csrfInput() }}
+            {{ actionInput('asset-vault/vault/restore/' ~ item.id) }}
+            {{ redirectInput('asset-vault') }}
+            <button type="submit" class="btn submit">{{ "Confirm Restore"|t('asset-vault') }}</button>
+            <a href="{{ url('asset-vault') }}" class="btn">{{ "Cancel"|t('asset-vault') }}</a>
+        </form>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,22 @@
+{% import "_includes/forms" as forms %}
+
+{{ forms.textField({
+    label: "Retention Period (Days)"|t('asset-vault'),
+    instructions: "How many days a deleted file stays in the vault before it’s purged automatically. Set to 0 to keep vaulted files forever."|t('asset-vault'),
+    id: 'retentionDays',
+    name: 'retentionDays',
+    value: settings.retentionDays,
+    type: 'number',
+    min: 0,
+    errors: settings.getErrors('retentionDays'),
+}) }}
+
+{{ forms.checkboxSelectField({
+    label: "Excluded Volumes"|t('asset-vault'),
+    instructions: "Deleting a file in a checked volume skips the vault entirely — the file is gone immediately, with no recoverable copy kept, exactly as it would be without this plugin. Use this for volumes whose contents must not linger after deletion."|t('asset-vault'),
+    id: 'excludedVolumes',
+    name: 'excludedVolumes',
+    values: settings.excludedVolumes,
+    options: craft.app.volumes.allVolumes|map(volume => { label: volume.name, value: volume.handle }),
+    errors: settings.getErrors('excludedVolumes'),
+}) }}

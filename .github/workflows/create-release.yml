@@ -1,0 +1,23 @@
+name: Create Release
+run-name: Create release for ${{ github.event.client_payload.version }}
+
+# Craft Plugin Store dispatches this when a version tag is recorded.
+# See: https://craftcms.com/docs/5.x/extend/plugin-store.html#automating-github-releases
+on:
+  repository_dispatch:
+    types:
+      - craftcms/new-release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: ncipollo/release-action@v1
+        with:
+          body: ${{ github.event.client_payload.notes }}
+          makeLatest: ${{ github.event.client_payload.latest }}
+          name: ${{ github.event.client_payload.version }}
+          prerelease: ${{ github.event.client_payload.prerelease }}
+          tag: ${{ github.event.client_payload.tag }}

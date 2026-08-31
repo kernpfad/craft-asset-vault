@@ -1,0 +1,77 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":semanticCommits",
+    ":preserveSemverRanges",
+    ":disableDependencyDashboard"
+  ],
+  "labels": [
+    "dependencies"
+  ],
+  "timezone": "Europe/Berlin",
+  "schedule": [
+    "before 6am on monday"
+  ],
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+  "rangeStrategy": "replace",
+  "lockFileMaintenance": {
+    "enabled": false
+  },
+  "packageRules": [
+    {
+      "description": "ci.yml pins the integration job's container image as ghcr.io/kernpfad/craft-test-base:<channelTag>@sha256:<digest>. Renovate's built-in github-actions manager tracks jobs.*.container.image digests natively (no custom manager needed) and opens a PR whenever craft-test-images publishes a new digest for that channel tag — always as its own reviewable PR, never automerged, since it changes what the integration job boots against.",
+      "matchPackageNames": [
+        "ghcr.io/kernpfad/craft-test-base"
+      ],
+      "automerge": false
+    },
+    {
+      "description": "Group Craft CMS quality tooling",
+      "matchPackageNames": [
+        "craftcms/ecs",
+        "craftcms/rector"
+      ],
+      "groupName": "craftcms quality tooling",
+      "automerge": false
+    },
+    {
+      "description": "Group PHPStan and Rector analysis stack",
+      "matchPackageNames": [
+        "phpstan/phpstan",
+        "rector/rector"
+      ],
+      "groupName": "static analysis",
+      "automerge": false
+    },
+    {
+      "description": "Group PHPUnit and related testing stack",
+      "matchPackageNames": [
+        "phpunit/phpunit",
+        "vlucas/phpdotenv"
+      ],
+      "groupName": "testing",
+      "automerge": false
+    },
+    {
+      "description": "Major updates need a human review",
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "dependencyDashboardApproval": false,
+      "automerge": false
+    },
+    {
+      "description": "Do not open noisy PRs for Craft runtime majors from Renovate",
+      "matchPackageNames": [
+        "craftcms/cms",
+        "craftcms/commerce"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "enabled": false
+    }
+  ]
+}

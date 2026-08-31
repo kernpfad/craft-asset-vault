@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Kernpfad local quality gate — integration tests against a real Craft
+# install (CRAFT_TEST_SITE_PATH). Runs on push, not on every commit,
+# because it boots Craft and hits a database.
+set -euo pipefail
+
+repo_root="$(git rev-parse --show-toplevel)"
+cd "$repo_root"
+
+if [ -z "${CRAFT_TEST_SITE_PATH:-}" ] || [ ! -d "${CRAFT_TEST_SITE_PATH:-}" ]; then
+    echo "pre-push: CRAFT_TEST_SITE_PATH not set/found — skipping integration tests." >&2
+    echo "          (see CONTRIBUTING.md to set up the shared local Craft test site)" >&2
+    exit 0
+fi
+
+has_script() {
+    php -r '
+        $c = json_decode(file_get_contents("composer.json"), true)["scripts"] ?? [];
+        exit(array_key_exists($argv[1], $c) ? 0 : 1);
+    ' "$1"
+}
+
+if ! has_script test:integration; then
+    exit 0
+fi
+
+# Multiple kernpfad plugins linked into the same shared test site listen to
+# the same Commerce events; running one plugin's tests with siblings still
+# enabled lets their event listeners cross-contaminate queue/state
+# assertions. Isolate to just this plugin (+ Commerce) when the shared
+# site's helper is available.
+handle="$(php -r '
+    $c = json_decode(file_get_contents("composer.json"), true);
+    echo $c["extra"]["handle"] ?? "";
+')"
+test_site_root="$(dirname "$CRAFT_TEST_SITE_PATH")"
+if [ -n "$handle" ] && [ -x "$test_site_root/enable-only.sh" ]; then
+    "$test_site_root/enable-only.sh" "$handle" >/dev/null
+    (cd "$CRAFT_TEST_SITE_PATH" && php craft queue/release all >/dev/null 2>&1) || true
+fi
+
+echo "pre-push: running integration tests against $CRAFT_TEST_SITE_PATH ..."
+composer run-script test:integration --ansi

@@ -1,0 +1,16 @@
+# Normalize text files
+* text=auto eol=lf
+
+# Do not ship development-only paths in export archives
+/.github export-ignore
+/tests export-ignore
+/ecs.php export-ignore
+/phpstan.neon export-ignore
+/phpstan export-ignore
+/rector.php export-ignore
+/phpunit.xml.dist export-ignore
+/renovate.json export-ignore
+/CONTRIBUTING.md export-ignore
+/.editorconfig export-ignore
+/.gitattributes export-ignore
+/.gitignore export-ignore

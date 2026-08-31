@@ -1,0 +1,67 @@
+{% extends "_layouts/cp" %}
+
+{% set title = "Asset Vault"|t('asset-vault') %}
+{% set selectedSubnavItem = 'vault' %}
+
+{% block actionButton %}
+    {% if items|length %}
+        <form method="post" accept-charset="UTF-8">
+            {{ csrfInput() }}
+            {{ actionInput('asset-vault/vault/empty') }}
+            {{ redirectInput('asset-vault') }}
+            <button type="button" class="btn submit formsubmit"
+                    data-confirm="{{ 'Permanently delete all {count} vaulted file(s)? This can’t be undone.'|t('asset-vault', { count: items|length }) }}">
+                {{ "Empty Vault"|t('asset-vault') }}
+            </button>
+        </form>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% if not items|length %}
+        <p>{{ "The vault is empty. Deleted assets will show up here."|t('asset-vault') }}</p>
+    {% else %}
+        <p class="light">
+            {% if retentionDays > 0 %}
+                {{ "Files are kept for {days} days before being purged automatically."|t('asset-vault', { days: retentionDays }) }}
+            {% else %}
+                {{ "Files are kept indefinitely until restored or deleted manually."|t('asset-vault') }}
+            {% endif %}
+        </p>
+
+        <table class="data fullwidth">
+            <thead>
+                <tr>
+                    <th scope="col">{{ "File"|t('asset-vault') }}</th>
+                    <th scope="col">{{ "Volume"|t('asset-vault') }}</th>
+                    <th scope="col">{{ "Deleted"|t('asset-vault') }}</th>
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                    <tr>
+                        <td>
+                            <strong>{{ item.filename }}</strong>
+                            {% if item.title %}<br><span class="light">{{ item.title }}</span>{% endif %}
+                        </td>
+                        <td>{{ item.volumeHandle }}</td>
+                        <td>{{ item.dateDeleted|datetime('short') }}</td>
+                        <td class="thin">
+                            <a href="{{ url('asset-vault/preview/' ~ item.id) }}" class="btn small">{{ "Restore"|t('asset-vault') }}</a>
+                            <form method="post" accept-charset="UTF-8" style="display:inline">
+                                {{ csrfInput() }}
+                                {{ actionInput('asset-vault/vault/delete-forever/' ~ item.id) }}
+                                {{ redirectInput('asset-vault') }}
+                                <button type="button" class="btn submit small formsubmit"
+                                        data-confirm="{{ 'Permanently delete “{filename}”? This can’t be undone.'|t('asset-vault', { filename: item.filename }) }}">
+                                    {{ "Delete Forever"|t('asset-vault') }}
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}

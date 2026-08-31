@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Asset Vault">
+  <rect x="1" y="1" width="98" height="98" rx="18" fill="oklch(20% 0.014 255)" stroke="oklch(36% 0.012 255)" stroke-width="1.5"></rect>
+  <g transform="translate(24.8 24.8) scale(2.1)" fill="none" stroke="oklch(78% 0.19 142)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="4" width="20" height="4" rx="1"></rect><path d="M20 8v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8"></path><path d="M12 18v-6"></path><path d="M9.5 14.5 12 12l2.5 2.5"></path>
+  </g>
+</svg>

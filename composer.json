@@ -1,0 +1,92 @@
+{
+    "name": "kernpfad/craft-asset-vault",
+    "description": "A recycle bin for Craft CMS assets. Deleted files are moved to a vault and can be restored from the control panel, instead of being erased immediately.",
+    "type": "craft-plugin",
+    "keywords": [
+        "craft",
+        "cms",
+        "craftcms",
+        "craft-plugin",
+        "assets",
+        "recycle-bin",
+        "trash",
+        "restore"
+    ],
+    "license": "proprietary",
+    "support": {
+        "email": "support@kernpfad.dev",
+        "docs": "https://kernpfad.dev/en/craft/plugins/craft-asset-vault/docs/",
+        "issues": "https://github.com/kernpfad/craft-asset-vault/issues",
+        "source": "https://github.com/kernpfad/craft-asset-vault",
+        "security": "https://github.com/kernpfad/craft-asset-vault/blob/main/SECURITY.md"
+    },
+    "require": {
+        "php": "^8.2",
+        "craftcms/cms": "^5.0.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "kernpfad\\assetvault\\": "src/"
+        }
+    },
+    "extra": {
+        "handle": "asset-vault",
+        "name": "Asset Vault",
+        "developer": "Kernpfad",
+        "documentationUrl": "https://kernpfad.dev/en/craft/plugins/craft-asset-vault/docs/",
+        "class": "kernpfad\\assetvault\\AssetVault",
+        "changelogUrl": "https://raw.githubusercontent.com/kernpfad/craft-asset-vault/main/CHANGELOG.md",
+        "developerUrl": "https://kernpfad.dev",
+        "imprintUrl": "https://kernpfad.dev/en/legal-notice",
+        "privacyPolicyUrl": "https://kernpfad.dev/en/privacy-policy",
+        "termsUrl": "https://kernpfad.dev/en/terms-and-conditions"
+    },
+    "config": {
+        "allow-plugins": {
+            "craftcms/plugin-installer": true,
+            "yiisoft/yii2-composer": true
+        },
+        "preferred-install": "source",
+        "sort-packages": true
+    },
+    "require-dev": {
+        "craftcms/ecs": "dev-main",
+        "craftcms/rector": "dev-craft6",
+        "phpunit/phpunit": "^11.0",
+        "vlucas/phpdotenv": "^5.6",
+        "phpstan/phpstan": "^2.2",
+        "phpstan/phpstan-phpunit": "^2.0"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "kernpfad\\assetvault\\tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "hooks:install": "[ \"$CI\" = \"true\" ] || git config core.hooksPath .githooks",
+        "post-install-cmd": "@hooks:install",
+        "post-update-cmd": "@hooks:install",
+        "check-cs": "ecs check --ansi",
+        "fix-cs": "ecs check --ansi --fix",
+        "phpstan": "phpstan analyse --memory-limit=1G --ansi",
+        "rector": "rector process --dry-run --ansi",
+        "rector:fix": "rector process --ansi",
+        "check": [
+            "@check-cs",
+            "@phpstan",
+            "@rector",
+            "@test:unit"
+        ],
+        "test": "phpunit --testsuite unit",
+        "test:unit": "phpunit --testsuite unit",
+        "test:integration": "phpunit --testsuite integration"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "authors": [
+        {
+            "name": "Kernpfad",
+            "homepage": "https://kernpfad.dev"
+        }
+    ]
+}

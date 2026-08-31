@@ -1,0 +1,30 @@
+# Release Notes for Asset Vault
+
+## 1.0.0 - Unreleased
+
+- **Fixed a crash on every archive/restore/delete-forever/purge for upgrading installs.** `{{%assetvault_audit_log}}` was only ever created in `Install.php`, which Craft runs solely for a brand-new install — a site that already had Asset Vault before the audit log was added never got the table, and `VaultService::logAudit()` calling `AuditLogRecord::save()` against a missing table throws (a DB-level error, not a validation failure, so the `if (!$entry->save())` guard around it never catches it). In practice: deleting *any* asset in the Control Panel on an upgraded install fatals instead of completing the delete — not a degraded feature, a broken core operation. Added migration `m260814_000000_add_audit_log_table` to create the table for installs that are missing it. Found while seeding demo data to write documentation screenshots, confirmed by reproducing the crash before the fix and its absence after.
+- Restoring now remaps Matrix (and nested entry) field data to fresh `newN` keys and drops relation IDs whose targets no longer exist, so complex custom fields round-trip onto the new asset instead of replaying stale nested-entry IDs.
+- Hardened Asset Index sources: **Vaulted** / **Missing on filesystem** resolve their asset IDs only when the source is queried (via AssetQuery behavior), so opening Assets no longer scans every volume up front. Missing-on-FS results stay cached ~60s and the cache is cleared after archive/restore.
+- **Archive to Vault** now requires the Asset Vault manage permission and skips assets the current user cannot save. The permission label covers archive, restore, and permanent delete.
+- Added a bulk **Archive to Vault** action on the Assets index: selected files are copied into the vault without being deleted. Progress runs through Craft's queue. Re-archiving the same asset replaces the previous vault copy.
+- Added Asset Index sources under **Asset Vault**: **Vaulted** (assets that currently have a vault copy, including soft-deleted ones) and **Missing on filesystem** (live assets whose file is gone from the volume).
+- After restoring an image, named image transforms are eager-generated in a background job so thumbnails are ready without waiting on the first front-end hit.
+- Initial release.
+- Deleted assets are copied into a per-volume vault before Craft removes the underlying file, instead of being lost immediately.
+- Vaulted files can be restored from the control panel, recreating the asset with its original title, alt text, and custom field content.
+- Vaulted files can be permanently deleted individually, or all at once via "Empty Vault".
+- Configurable retention period; expired vault items are purged automatically during Craft's garbage collection.
+- Verified end-to-end against a real Craft 5 install (PostgreSQL) on both a local filesystem volume and a real S3-protocol volume (MinIO).
+- Fixed: the "excluded volumes" setting was never actually applied. It was declared, validated and documented, but nothing read it, so deleting a file in a volume the site had explicitly excluded still copied that file into the vault — the opposite of what the setting promises, and a real problem for volumes excluded precisely so deletions are final. It is now enforced, and exposed in the control panel settings screen (previously it could only be set from a config file, where it silently did nothing).
+- Removed the unused `expiryDate` column and its index from the vault table. Retention is computed from `dateDeleted` at purge time; the column was never written or read, and its index only cost write performance. `dateDeleted` is now indexed instead, which is what the purge query actually filters on.
+- Added an automated test suite (26 tests: unit coverage for path/conflict resolution, integration coverage driving the real delete/restore/purge pipeline against a real Craft install, including custom-field round-tripping, the volume-root fallback when an asset's original folder is gone, and Craft's real garbage collector triggering the retention purge), plus ECS, PHPStan level 8 and Rector configuration.
+- Fixed several type-safety issues surfaced by that first static-analysis run: a failed `json_encode()` could store `false` in the focal-point and field-data columns that the restore path later decodes; a null volume ID could reach vault-path construction; a null indexing-session ID could reach `indexFile()`; and `resolveTargetFolder()` declared a non-nullable return type it couldn't guarantee.
+- Fixed: focal points were stored in the vault but never reapplied on restore.
+- Fixed: a failed `saveElement()` during restore deleted the vault copy anyway, risking data loss; the vault entry is now kept and the partially indexed asset is removed instead.
+- Fixed: a vault file copied to storage but not recorded (because the DB save failed) was left orphaned; the copy is now rolled back.
+- Added `VaultService::getAllItems()` so the control panel listing goes through the service layer instead of querying records directly.
+- Added `declare(strict_types=1);` to all plugin source files.
+- Added a restore preview: clicking "Restore" now shows the exact path the file will land at and, if a file already exists there, a warning that the restore will be renamed rather than overwrite it — before anything actually happens.
+- Added an audit log (new **Audit Log** control panel tab) recording who archived, restored or permanently deleted each file, and when. Automatic purges from Craft's garbage collection are logged too, attributed to no user rather than whichever request happened to trigger GC.
+- Added a console command, `php craft asset-vault/purge`, to run the retention purge on demand (e.g. from cron) instead of waiting for Craft's garbage collection cycle. Defaults to the configured retention period; `--retentionDays` overrides it for a single run.
+- Added cancelable events on `VaultService`: `EVENT_BEFORE_ARCHIVE`/`EVENT_AFTER_ARCHIVE` around vaulting a deleted asset, and `EVENT_BEFORE_RESTORE`/`EVENT_AFTER_RESTORE` around restoring one, so other plugins can veto or react to either step.

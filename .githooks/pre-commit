@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# Kernpfad local quality gate — fast checks (mirrors CI's "quality" job).
+# Installed via `composer install` (post-install-cmd sets core.hooksPath).
+set -euo pipefail
+
+repo_root="$(git rev-parse --show-toplevel)"
+cd "$repo_root"
+
+# Only bother if something PHP/tooling-relevant is actually staged.
+if ! git diff --cached --name-only --diff-filter=ACMR | grep -qE '\.php$|composer\.json$|\.neon$|phpunit\.xml'; then
+    exit 0
+fi
+
+if [ ! -d vendor ]; then
+    echo "pre-commit: vendor/ is missing — run 'composer install' first." >&2
+    exit 1
+fi
+
+has_script() {
+    php -r '
+        $c = json_decode(file_get_contents("composer.json"), true)["scripts"] ?? [];
+        exit(array_key_exists($argv[1], $c) ? 0 : 1);
+    ' "$1"
+}
+
+echo "pre-commit: running code quality checks..."
+
+if has_script check; then
+    composer run-script check --ansi
+elif has_script quality; then
+    composer run-script quality --ansi
+else
+    echo "pre-commit: no 'check' or 'quality' composer script found — skipping." >&2
+fi

@@ -1,0 +1,33 @@
+{% extends "_layouts/cp" %}
+
+{% set title = "Audit Log"|t('asset-vault') %}
+{% set selectedSubnavItem = 'audit-log' %}
+
+{% block content %}
+    {% if not entries|length %}
+        <p>{{ "No audit log entries yet."|t('asset-vault') }}</p>
+    {% else %}
+        <table class="data fullwidth">
+            <thead>
+                <tr>
+                    <th scope="col">{{ "Action"|t('asset-vault') }}</th>
+                    <th scope="col">{{ "File"|t('asset-vault') }}</th>
+                    <th scope="col">{{ "Volume"|t('asset-vault') }}</th>
+                    <th scope="col">{{ "User"|t('asset-vault') }}</th>
+                    <th scope="col">{{ "Date"|t('asset-vault') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in entries %}
+                    <tr>
+                        <td>{{ entry.actionLabel|t('asset-vault') }}</td>
+                        <td>{{ entry.filename }}</td>
+                        <td>{{ entry.volumeHandle }}</td>
+                        <td>{{ entry.userId and users[entry.userId] is defined ? users[entry.userId].friendlyName : "System"|t('asset-vault') }}</td>
+                        <td>{{ entry.dateCreated|datetime('short') }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}
