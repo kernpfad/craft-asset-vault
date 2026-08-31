@@ -1,6 +1,6 @@
 # Release Notes for Asset Vault
 
-## 1.0.0 - Unreleased
+## 1.0.0 - 2026-08-31
 
 - **Fixed a crash on every archive/restore/delete-forever/purge for upgrading installs.** `{{%assetvault_audit_log}}` was only ever created in `Install.php`, which Craft runs solely for a brand-new install — a site that already had Asset Vault before the audit log was added never got the table, and `VaultService::logAudit()` calling `AuditLogRecord::save()` against a missing table throws (a DB-level error, not a validation failure, so the `if (!$entry->save())` guard around it never catches it). In practice: deleting *any* asset in the Control Panel on an upgraded install fatals instead of completing the delete — not a degraded feature, a broken core operation. Added migration `m260814_000000_add_audit_log_table` to create the table for installs that are missing it. Found while seeding demo data to write documentation screenshots, confirmed by reproducing the crash before the fix and its absence after.
 - Restoring now remaps Matrix (and nested entry) field data to fresh `newN` keys and drops relation IDs whose targets no longer exist, so complex custom fields round-trip onto the new asset instead of replaying stale nested-entry IDs.
